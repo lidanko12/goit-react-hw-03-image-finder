@@ -1,13 +1,12 @@
 import React, { Component } from 'react';
 import { toast, ToastContainer, Zoom } from 'react-toastify';
-import Loader from 'react-loader-spinner';
 import 'react-toastify/dist/ReactToastify.css';
-import 'react-loader-spinner/dist/loader/css/react-spinner-loader.css';
-import  s from'./App.module.css';
-import Searchbar from './components/Searchbar';
+import s from './App.module.css';
 import ImageGallery from './components/ImageGallery';
-import Button from './components/Button'
+import Button from './components/Button';
 import Modal from './components/Modal';
+import Searchbar from './components/Searchbar';
+import Load from './components/Loader';
 
 export default class App extends Component {
   state = {
@@ -27,9 +26,7 @@ export default class App extends Component {
 
     if (prevQuery !== nextQuery) {
       this.setState({ images: [], page: 1 });
-      setTimeout(() => {
-        this.fetchImages();
-      }, 1000);
+      this.fetchImages();
     }
   }
 
@@ -37,7 +34,7 @@ export default class App extends Component {
     const API_KEY = '22920296-83f622dc6fe28ab18a69af7db';
     const BASE_URL = 'https://pixabay.com/api';
     const { text, page } = this.state;
-    const perPage = 12;
+    const perPage = 15;
     const request = `/?image_type=photo&orientation=horizontal&q=${text}&page=${page}&per_page=${perPage}&key=${API_KEY}`;
 
     this.setState({ status: 'pending' });
@@ -49,12 +46,15 @@ export default class App extends Component {
         if (images.length < 1) {
           toast.error('Nothing found, specify your search');
         }
+
         this.setState(prevState => ({
           images: [...prevState.images, ...images],
           status: 'resolved',
           page: prevState.page + 1,
         }));
-        this.handlePageScroll();
+        if (page > 1) {
+          this.pageScroll();
+        }
       })
       .catch(error => this.setState({ error, status: 'rejected' }));
   };
@@ -70,13 +70,11 @@ export default class App extends Component {
     this.toggleModal();
   };
 
-  handlePageScroll = () => {
-    setTimeout(() => {
-      window.scrollTo({
-        top: document.documentElement.scrollHeight,
-        behavior: 'smooth',
-      });
-    }, 1000);
+  pageScroll = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: 'smooth',
+    });
   };
 
   onSubmit = text => {
@@ -93,18 +91,11 @@ export default class App extends Component {
       <>
         <div className={s.App}>
           <Searchbar onSubmit={this.onSubmit} />
-          {status === 'pending' && (
-            <Loader
-              className={s.Loader}
-              type="TailSpin"
-              color="#c5000a"
-              height={150}
-              width={150}
-              timeout={2000}
-              
-            />
-          )}
-          <ImageGallery images={images} setModalImgInfo={this.setModalImgInfo} />
+          {status === 'pending' && <Load />}
+          <ImageGallery
+            images={images}
+            setModalImgInfo={this.setModalImgInfo}
+          />
           {images.length > 0 && <Button onLoadMore={this.onLoadMore} />}
           {showModal && (
             <Modal onClose={this.toggleModal}>
@@ -112,7 +103,7 @@ export default class App extends Component {
             </Modal>
           )}
         </div>
-        <ToastContainer transition={Zoom} autoClose={3000} />
+        <ToastContainer transition={Zoom}  />
       </>
     );
   }
