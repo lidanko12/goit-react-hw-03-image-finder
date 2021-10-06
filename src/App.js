@@ -34,7 +34,7 @@ export default class App extends Component {
     const API_KEY = '22920296-83f622dc6fe28ab18a69af7db';
     const BASE_URL = 'https://pixabay.com/api';
     const { text, page } = this.state;
-    const perPage = 15;
+    const perPage = 20;
     const request = `/?image_type=photo&orientation=horizontal&q=${text}&page=${page}&per_page=${perPage}&key=${API_KEY}`;
 
     this.setState({ status: 'pending' });
@@ -78,7 +78,7 @@ export default class App extends Component {
   };
 
   onSubmit = text => {
-    this.setState({ text });
+    this.setState({ page: 1 ,text});
   };
 
   onLoadMore = () => {
